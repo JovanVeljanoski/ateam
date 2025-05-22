@@ -27,6 +27,25 @@ class Agent:
             top_p: float = 1.0,
             verbose: bool = False,
     ):
+        """
+        Initialize an AI agent.
+
+        Args:
+            role: The role or persona of the agent. This is essentially the system or developer prompt passed to the underlying LLM.
+            model: The model to use.
+            tools: A list of tools to use. The tools are pydantic models that inherit from `BaseTool` and implement the `run` method.
+            max_tool_calls: The maximum number of tool calls to make. This is the maximum number of times the agent can call a tool.
+            api_key: The API key to use. If not provided, the `OPENAI_API_KEY` environment variable is used.
+            base_url: The base URL to use.
+            output_format: The output format to use. If provided, it should be a pydantic model that inherits from `pydantic.BaseModel`.
+            reasoning: The reasoning level to use. Accepted values are "low", "medium", "high".
+            temperature: The `temperature` parameter passed to the underlying LLM.
+            top_p: The `top_p` parameter passed to the underlying LLM.
+            verbose: If true, print the output of every step. Useful for monitoring the agent's behavior.
+
+        Returns:
+            The agent instance.
+        """
         self.role = role
         self.model = model
         self.tools = tools or []
@@ -47,6 +66,15 @@ class Agent:
         self.client = openai.OpenAI(api_key=api_key, base_url=base_url)
 
     def run(self, msg: str) -> str:
+        """
+        Run the agent.
+
+        Args:
+            msg: The initial message/ instructions to the agent.
+
+        Returns:
+            The response from the agent.
+        """
         messages: list[Any] = [
             {"role": "system", "content": self.role},
             {"role": "user", "content": msg},
@@ -99,6 +127,17 @@ class Agent:
         return f'An answer could not be provided after {self.max_tool_calls} tool calls.'
 
     def as_tool(self, name: str, description: str):
+        """
+        Convert the agent to a tool.
+        This allows the agent to be used as a tool in other agents.
+
+        Args:
+            name: The name of the tool.
+            description: The description of the tool.
+
+        Returns:
+            A pydantic model that inherits from `BaseTool` and implements the `run` method.
+        """
         agent_instance = self  # Capture agent reference
 
         field_definitions = {}

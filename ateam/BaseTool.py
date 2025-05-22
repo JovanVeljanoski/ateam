@@ -26,6 +26,11 @@ class SharedState:
 
 
 class BaseTool(pydantic.BaseModel, ABC):
+    """
+    Base class for all tools. All tools should inherit from this class.
+    The `run` method is the actual implementation of the tool, and is the function that will be called when the tool is used.
+    Each individual tool should implement its own `run` method.
+    """
     _shared_state: Optional[SharedState] = None
     _tool_call: Optional[openai.types.beta.threads.runs.tool_call.ToolCall] = None
 
