@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    name: Test-n-lint (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.12]
+      fail-fast: false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: "0.7.6"
+        python-version: 3.13
+        enable-cache: true
+        cache-dependency-glob: "pyproject.toml"
+
+    - name: Install dependencies
+      run: |
+        uv sync
+
+    - name: Linting, code formatting, and type checking
+      run: |
+        echo "Linting with flake8"
+        uv run flake8 ateam
+        echo "Linting with ruff"
+        uv run ruff check ateam
+        echo "Type checking with ty"
+        uv run ty check ateam
+
+    - name: Run tests
+      run: |
+        echo "Running tests with pytest"
+        echo "No tests found or pytest not configured yet"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true

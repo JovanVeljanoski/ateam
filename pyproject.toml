@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ateam"
+version = "0.0.1"
+authors = [
+  { name="Jovan Veljanoski", email="jovan.veljanoski@gmail.com" },
+]
+description = "A short description of the project."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = "~=3.12"
+dependencies = [
+  "docstring_parser~=0.16",
+  "openai~=1.70",
+  "pydantic~=2.11",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[dependency-groups]
+dev = [
+  "flake8~=7.2",
+  "Flake8-pyproject~=1.2",
+  "pytest~=8.3",
+  "ruff~=0.1",
+  "ty",
+]
+
+[tool.uv]
+managed = true
+
+[tool.pyright]
+typeCheckingMode = "standard"
+include = ["ateam"]
+exclude = ["**/__pycache__", ".git", ".venv"]
+autoSearchPaths = true
+useLibraryCodeForTypes = true
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
+
+[tool.ruff.lint]
+exclude = ["__pycache__", ".git", ".venv"]
+ignore = ["E203", "E501", "E701", "E731", "E741"]
+
+[tool.flake8]
+max-line-length = 160
+exclude = ["__pycache__", ".git", ".venv"]
+ignore = ["E203", "E501", "E701", "E704", "E731", "E741", "W503", "W504"]
