@@ -65,7 +65,7 @@ class Agent:
 
         self.client = openai.OpenAI(api_key=api_key, base_url=base_url)
 
-    def run(self, msg: str) -> str:
+    def run(self, msg: str) -> str | pydantic.BaseModel:
         """
         Run the agent.
 
@@ -101,11 +101,11 @@ class Agent:
             for output in response.output:
                 if output.type == 'message':
                     messages.append(output)
-                    return response.output_text
+                    return response.output_parsed or response.output_text
 
                 elif output.type == 'function_call':
                     if self.verbose:
-                        print(f'Function call: {output.name}')
+                        print(f'Function call: {output.name}({output.parsed_arguments})')
                     function_call_msg = {
                         'type': 'function_call',
                         'call_id': output.call_id,
