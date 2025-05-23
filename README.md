@@ -117,6 +117,194 @@ helm = Agent(
 HelmTool = helm.as_tool(name='Helmsman', description='The helmsman is responsible for course changes')
 ```
 
+### Shared State
+The library also supports convenient way to share information (data) across agents and tools. This is useful when you want to share information, and potentially reduce the number of calls you make to the underlying LLM.
+
+<details>
+<summary> Shared State Example </summary>
+
+```python
+from ateam import Agent, BaseTool
+from pydantic import Field
+
+class SetUserPreferenceTool(BaseTool):
+    """
+    Sets user preferences that can be shared across other tools.
+    """
+    preference_name: str = Field(..., description="Name of the preference to set (e.g., 'temperature_unit')")
+    preference_value: str = Field(..., description="Value of the preference (e.g., 'Fahrenheit' or 'Celsius')")
+
+    def run(self) -> str:
+        # Store the preference in shared state
+        self._shared_state.set(self.preference_name, self.preference_value)
+        print(f"[SharedState SET] '{self.preference_name}': '{self.preference_value}'")
+        return f"✅ Preference set: {self.preference_name} = {self.preference_value}"
+
+
+class GetWeatherTool(BaseTool):
+    """
+    Gets weather information for a city. Uses temperature_unit from shared state if available.
+    """
+    city: str = Field(..., description="City name to get weather for")
+
+    def run(self) -> str:
+        # Get temperature unit preference from shared state
+        preferred_unit = self._shared_state.get("temperature_unit", "Celsius")
+        print(f"[SharedState GET] 'temperature_unit': '{preferred_unit}'")
+
+        # Mock weather data (in Celsius)
+        mock_weather = {
+            "london": 15,
+            "tokyo": 22,
+            "new york": 18,
+            "paris": 12,
+            "sydney": 25
+        }
+
+        city_lower = self.city.lower()
+        if city_lower not in mock_weather:
+            return f"❌ Weather data not available for {self.city}"
+
+        temp_celsius = mock_weather[city_lower]
+
+        # Convert temperature based on preference
+        if preferred_unit.lower() == "fahrenheit":
+            temp_fahrenheit = (temp_celsius * 9/5) + 32
+            temperature_str = f"{temp_fahrenheit:.1f}°F"
+            print(f"[Temperature Conversion] {temp_celsius}°C → {temp_fahrenheit:.1f}°F")
+        else:
+            temperature_str = f"{temp_celsius}°C"
+
+        weather_data = {
+            "city": self.city,
+            "temperature": temperature_str,
+            "unit": preferred_unit,
+            "condition": "Partly cloudy"  # Mock condition
+        }
+
+        return f"🌤️ Weather in {self.city}: {temperature_str}, {weather_data['condition']}"
+
+
+def demonstrate_agent_with_shared_state():
+    """
+    Demonstrates SharedState functionality using the real Agent class.
+    """
+
+    # Create agent with tools
+    agent = Agent(
+        role="You are a helpful assistant that can set user preferences and get weather information. "
+             "When getting weather, always check if the user has set a temperature unit preference first.",
+        tools=[SetUserPreferenceTool, GetWeatherTool],
+        verbose=True
+    )
+    # Test scenarios
+    scenarios = [
+        "What's the weather in London?",
+        "Please set my temperature preference to Fahrenheit",
+        "What's the weather in London now?",
+        "What's the weather in Tokyo?",
+        "Set my temperature preference to Celsius",
+        "What's the weather in Paris?",
+    ]
+
+    for i, scenario in enumerate(scenarios, 1):
+        print(f"\n{'='*50}")
+        print(f"USER QUERY {i}: {scenario}")
+        print('='*50)
+
+        response = agent.run(scenario)
+        print(f"ASSISTANT: {response}")
+
+    print(f"\n{'='*50}")
+    print("FINAL SHARED STATE DATA")
+    print('='*50)
+    print("Current shared state data:")
+    agent.shared_state.print_data()
+
+if __name__ == "__main__":
+    demonstrate_agent_with_shared_state()
+```
+
+<details>
+
+<summary> Output </summary>
+
+```
+==================================================
+USER QUERY 1: What's the weather in London?
+==================================================
+Function call: GetWeatherTool
+[SharedState GET] 'temperature_unit': 'Celsius'
+Function GetWeatherTool output: 🌤️ Weather in London: 15°C, Partly cloudy
+Function call: SetUserPreferenceTool
+[SharedState SET] 'temperature_unit': 'Celsius'
+Function SetUserPreferenceTool output: ✅ Preference set: temperature_unit = Celsius
+ASSISTANT: The weather in London is currently 15°C and partly cloudy.
+
+==================================================
+USER QUERY 2: Please set my temperature preference to Fahrenheit
+==================================================
+Function call: SetUserPreferenceTool
+[SharedState SET] 'temperature_unit': 'Fahrenheit'
+Function SetUserPreferenceTool output: ✅ Preference set: temperature_unit = Fahrenheit
+ASSISTANT: Your temperature preference has been set to Fahrenheit. Would you like to see the current weather in any specific city?
+
+==================================================
+USER QUERY 3: What's the weather in London now?
+==================================================
+Function call: GetWeatherTool
+[SharedState GET] 'temperature_unit': 'Fahrenheit'
+[Temperature Conversion] 15°C → 59.0°F
+Function GetWeatherTool output: 🌤️ Weather in London: 59.0°F, Partly cloudy
+ASSISTANT: The weather in London is currently 59°F with partly cloudy skies. Would you like to see the weather in a different city or change the temperature unit?
+
+==================================================
+USER QUERY 4: What's the weather in Tokyo?
+==================================================
+Function call: GetWeatherTool
+[SharedState GET] 'temperature_unit': 'Fahrenheit'
+[Temperature Conversion] 22°C → 71.6°F
+Function GetWeatherTool output: 🌤️ Weather in Tokyo: 71.6°F, Partly cloudy
+Function call: SetUserPreferenceTool
+[SharedState SET] 'city': 'Tokyo'
+Function SetUserPreferenceTool output: ✅ Preference set: city = Tokyo
+ASSISTANT: The weather in Tokyo is partly cloudy with a temperature of 71.6°F. Would you like to know anything else?
+
+==================================================
+USER QUERY 5: Set my temperature preference to Celsius
+==================================================
+Function call: SetUserPreferenceTool
+[SharedState SET] 'temperature_unit': 'Celsius'
+Function SetUserPreferenceTool output: ✅ Preference set: temperature_unit = Celsius
+ASSISTANT: Your temperature preference has been set to Celsius. Would you like to know the weather forecast for a specific city?
+
+==================================================
+USER QUERY 6: What's the weather in Paris?
+==================================================
+Function call: GetWeatherTool
+[SharedState GET] 'temperature_unit': 'Celsius'
+Function GetWeatherTool output: 🌤️ Weather in Paris: 12°C, Partly cloudy
+Function call: GetWeatherTool
+[SharedState GET] 'temperature_unit': 'Celsius'
+Function GetWeatherTool output: 🌤️ Weather in Paris: 12°C, Partly cloudy
+ASSISTANT: The weather in Paris is currently 12°C with partly cloudy skies. Would you like to know the weather in another city or need any other assistance?
+
+==================================================
+FINAL SHARED STATE DATA
+==================================================
+Current shared state data:
+temperature_unit: Celsius
+city: Tokyo
+```
+
+</details>
+
+</details>
+
+
+
+
+
 ## General usage when creating agents and tools
 
 For better results, creating the comprehensive instructions (roles, descriptions, names, etc.) is key. Make sure you provide sufficient and clear details, to get maximum from your agentic workflow.
