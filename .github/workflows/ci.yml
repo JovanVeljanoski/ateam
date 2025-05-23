@@ -36,15 +36,20 @@ jobs:
       run: |
         echo "Linting with flake8"
         uv run flake8 ateam
+        uv run flake8 tests
         echo "Linting with ruff"
         uv run ruff check ateam
+        uv run ruff check tests
         echo "Type checking with ty"
         uv run ty check ateam
+        uv run ty check tests
 
     - name: Run tests
       run: |
         echo "Running tests with pytest"
-        echo "No tests found or pytest not configured yet"
+        uv run pytest tests
+      env:
+        OPENAI_API_KEY: sk-proj-0123456789
 
 concurrency:
   group: ci-${{ github.ref }}
