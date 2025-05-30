@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ateam"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Jovan Veljanoski", email="jovan.veljanoski@gmail.com" },
 ]
@@ -14,7 +14,7 @@ license = {file = "LICENSE"}
 requires-python = "~=3.12"
 dependencies = [
   "docstring_parser~=0.16",
-  "openai~=1.70",
+  "openai~=1.81",
   "pydantic~=2.11",
 ]
 classifiers = [

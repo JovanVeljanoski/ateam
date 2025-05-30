@@ -106,13 +106,7 @@ class Agent:
                 elif output.type == 'function_call':
                     if self.verbose:
                         print(f'Function call: {output.name}({output.parsed_arguments})')
-                    function_call_msg = {
-                        'type': 'function_call',
-                        'call_id': output.call_id,
-                        'name': output.name,
-                        'arguments': output.arguments
-                    }
-                    messages.append(function_call_msg)
+                    messages.append(output)
                     function_output = cast(RunnableTool, output.parsed_arguments).run()
                     if self.verbose:
                         print(f'Function {output.name} output: {function_output}')
