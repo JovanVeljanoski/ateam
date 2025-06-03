@@ -2,7 +2,7 @@ import pytest
 from pydantic import Field, ValidationError
 
 from ateam import BaseTool, Agent
-from ateam.BaseTool import SharedState
+from ateam.base_tool import SharedState
 
 
 class MockTool(BaseTool):

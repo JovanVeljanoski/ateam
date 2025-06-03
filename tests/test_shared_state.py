@@ -1,6 +1,6 @@
 import pytest
 
-from ateam.BaseTool import SharedState
+from ateam.base_tool import SharedState
 
 
 class TestSharedState:

@@ -302,8 +302,30 @@ city: Tokyo
 </details>
 
 
+### Chat API
 
+If you want to use models that are not supported by the `responses` api, typically models provided by providers other than OpenAI, you can use the `chat` API. It is currently only tested with OpenAI and Google Gemini models. The use is generally the same:
 
+```python
+import os
+from ateam.chat import Agent
+
+gemini_agent = Agent(
+    base_url='https://generativelanguage.googleapis.com/v1beta/openai/',
+    api_key=os.getenv('GEMINI_API_KEY'),
+    model='gemini-2.5-flash',
+    role='You are a helpful personal assistant managing my calendar and appointments.',
+    tools=[CheckCalendar, MakeNewAppointment, ReScheduleAppointment, CancelAppointment]
+)
+
+output = gemini_agent.run('What is my schedule for today?')
+print(output)
+```
+
+#### _Known issues and limitations_
+
+- Gemini models do not simultaneously support both tools and structured output.
+- Gemini models do not support reasoning.
 
 ## General usage when creating agents and tools
 

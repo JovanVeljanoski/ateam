@@ -23,7 +23,7 @@ jobs:
     - name: Setup uv
       uses: astral-sh/setup-uv@v5
       with:
-        version: "0.7.6"
+        version: "0.7.9"
         python-version: 3.13
         enable-cache: true
         cache-dependency-glob: "pyproject.toml"
@@ -49,7 +49,8 @@ jobs:
         echo "Running tests with pytest"
         uv run pytest tests
       env:
-        OPENAI_API_KEY: sk-proj-0123456789
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
 concurrency:
   group: ci-${{ github.ref }}
