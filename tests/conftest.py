@@ -5,7 +5,7 @@ import pytest
 def reset_tool_shared_state():
     """Reset shared state between tests to avoid interference."""
     # This fixture runs automatically before each test
-    from ateam.BaseTool import BaseTool
+    from ateam.base_tool import BaseTool
 
     # Clear any existing shared state on all tool classes
     for cls in BaseTool.__subclasses__():
