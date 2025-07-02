@@ -99,7 +99,7 @@ class CheckWeatherLocation(BaseTool):
 ```
 
 ### Agents as tools
-Agents themselves can be converted to tools. This was one agent, when appropriate, can pass instructions to another agent, which in turns has access to other tooks and agents. This allows for more complex workflows.
+Agents themselves can be converted to tools. This way one agent, when appropriate, can pass instructions to another agent, which in turns has access to other tools and agents. This allows for more complex workflows.
 
 To convert an agent to a tool, you can use the `as_tool` method. This will return a pydantic model that inherits from `BaseTool` and implements the `run` method. When converting an agent to a tool, you need to specify the name and description of the tool.
 
